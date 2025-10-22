@@ -1,4 +1,4 @@
-from typing import TypeVar, Generic, Optional
+from typing import TypeVar, Generic, Optional, Union
 
 T = TypeVar('T')
 
@@ -8,7 +8,7 @@ class MyArray(Generic[T]):
             raise ValueError("Amount must be non-negative")
         self._size = amount
         self._overrides = {}
-        self._default_value: Optional[T] = None
+        self._default_value: Union[T, None] = None
         self._has_default = False
     
     def setAll(self, value: T) -> None:
