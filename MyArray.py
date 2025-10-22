@@ -7,23 +7,23 @@ class MyArray(Generic[T]):
         if amount < 0:
             raise ValueError("Amount must be non-negative")
         self.amount = amount
-        self.data = {}
-        self.global_value: Optional[T] = None
-        self.global_set = False
+        self._overrides = {}
+        self._default_value: Optional[T] = None
     
     def setAll(self, value: T) -> None:
-        self.global_value = value
-        self.global_set = True
-        self.data.clear()
+        self._default_value = value
+        self._overrides.clear()
     
     def set(self, index: int, value: T) -> None:
         if index < 0 or index >= self.amount:
             raise IndexError("Index out of range")
-        self.data[index] = value
+        self._overrides[index] = value
     
     def get(self, index: int) -> T:
         if index < 0 or index >= self.amount:
             raise IndexError("Index out of range")
-        if self.global_set and index not in self.data:
-            return self.global_value
-        return self.data.get(index, self.global_value)
+        if index in self._overrides:
+            return self._overrides[index]
+        if self._default_value is not None:
+            return self._default_value
+        raise ValueError("Value at index is not set")

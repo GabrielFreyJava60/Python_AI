@@ -72,6 +72,11 @@ class TestMyArray(unittest.TestCase):
         large_array.set(500, 555)
         self.assertEqual(large_array.get(500), 555)
         self.assertEqual(large_array.get(501), 999)
+    
+    def test_uninitialized_value(self):
+        array = MyArray[int](3)
+        with self.assertRaises(ValueError):
+            array.get(0)
 
 
 if __name__ == '__main__':
