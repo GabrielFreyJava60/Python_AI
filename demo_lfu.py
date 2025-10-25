@@ -1,0 +1,55 @@
+from main import LfuDictCache
+
+print("=== LFU Cache Demonstration ===")
+print("Least Frequently Used cache with LRU tie-breaking\n")
+
+cache = LfuDictCache(3)
+print(f"Created LFU cache with capacity {cache.capacity}")
+
+print("\n1. Adding initial elements:")
+cache.put(1, "apple")
+cache.put(2, "banana")
+cache.put(3, "cherry")
+print(f"Cache size: {cache.size()}")
+print(f"get(1): {cache.get(1)}")
+print(f"get(2): {cache.get(2)}")
+print(f"get(3): {cache.get(3)}")
+
+print("\n2. Testing frequency updates:")
+cache.get(1)
+cache.get(1)
+cache.get(2)
+print("Accessed: get(1) twice, get(2) once")
+print(f"get(1): {cache.get(1)} (freq: 3)")
+print(f"get(2): {cache.get(2)} (freq: 2)")
+print(f"get(3): {cache.get(3)} (freq: 1)")
+
+print("\n3. Adding new element (should evict least frequent):")
+cache.put(4, "date")
+print(f"Added key 4, cache size: {cache.size()}")
+print(f"get(1): {cache.get(1)} (should be present)")
+print(f"get(2): {cache.get(2)} (should be present)")
+print(f"get(3): {cache.get(3)} (should be evicted)")
+print(f"get(4): {cache.get(4)} (should be present)")
+
+print("\n4. Testing LRU tie-breaking:")
+cache.put(5, "elderberry")
+print(f"Added key 5, cache size: {cache.size()}")
+print(f"get(1): {cache.get(1)} (should be present)")
+print(f"get(2): {cache.get(2)} (should be present)")
+print(f"get(4): {cache.get(4)} (should be evicted)")
+print(f"get(5): {cache.get(5)} (should be present)")
+
+print("\n5. Testing update existing key:")
+cache.put(1, "updated_apple")
+print(f"Updated key 1, get(1): {cache.get(1)}")
+
+print("\n6. Testing clear:")
+cache.clear()
+print(f"Cache cleared, size: {cache.size()}")
+print(f"get(1): {cache.get(1)} (should be None)")
+
+print("\n7. Testing zero capacity:")
+zero_cache = LfuDictCache(0)
+zero_cache.put(1, "test")
+print(f"Zero capacity cache, get(1): {zero_cache.get(1)} (should be None)")
