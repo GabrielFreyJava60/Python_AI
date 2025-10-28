@@ -39,18 +39,22 @@ print("   10 unique random numbers in [1, 49]:")
 for num in numbers4:
     print(f"   {num}")
 
-print("\n5. Testing resetDistinct:")
+print("\n5. Testing resetDistinct and multiple iterations:")
 numbers5 = RandomNumbersStream(min=1, max=5)
 numbers5.setDistinct()
 numbers5.setLimit(5)
 print("   Distinct mode (should get all 5 numbers):")
+result1 = []
 for num in numbers5:
+    result1.append(num)
     print(f"   {num}", end=" ")
-print()
+print(f"\n   Generated {len(result1)} numbers, all unique: {len(set(result1)) == len(result1)}")
 
 numbers5.resetDistinct()
 numbers5.setLimit(10)
 print("\n   After resetDistinct (may repeat):")
+result2 = []
 for num in numbers5:
+    result2.append(num)
     print(f"   {num}", end=" ")
-print()
+print(f"\n   Generated {len(result2)} numbers, has repeats: {len(set(result2)) < len(result2)}")
