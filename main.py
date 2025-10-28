@@ -1,100 +1,78 @@
-from typing import Any, Optional
-from collections import defaultdict, OrderedDict
+from typing import Optional, Callable, Iterator
+import random
 
 
-class DictCache:
-    def __init__(self, capacity: int):
-        self.capacity = capacity
-        self.cache = {}
-        self.access_order = OrderedDict()
+class RandomNumbersStream:
+    def __init__(self, min: int = -10 ** 20, max: int = 10 ** 20):
+        if min > max:
+            raise ValueError(f"min ({min}) must be <= max ({max})")
+        
+        self.min = min
+        self.max = max
+        self.filter_predicate: Optional[Callable[[int], bool]] = None
+        self.limit: Optional[int] = None
+        self.distinct = False
+        self._generated_numbers: set[int] = set()
     
-    def get(self, key: Any) -> Optional[Any]:
-        if key in self.cache:
-            self.access_order.move_to_end(key)
-            return self.cache[key]
+    def setFilter(self, predicate: Callable[[int], bool]) -> None:
+        self.filter_predicate = predicate
+    
+    def setLimit(self, limit: int) -> None:
+        if limit < 0:
+            raise ValueError(f"limit must be >= 0, got {limit}")
+        self.limit = limit
+    
+    def setDistinct(self) -> None:
+        self.distinct = True
+    
+    def resetDistinct(self) -> None:
+        self.distinct = False
+        self._generated_numbers.clear()
+    
+    def _passes_filter(self, num: int) -> bool:
+        if self.filter_predicate is None:
+            return True
+        try:
+            return self.filter_predicate(num)
+        except Exception:
+            return False
+    
+    def _generate_next(self) -> Optional[int]:
+        max_possible = self.max - self.min + 1
+        max_attempts = max(10000, max_possible * 10)
+        
+        for _ in range(max_attempts):
+            num = random.randint(self.min, self.max)
+            
+            if self.distinct and num in self._generated_numbers:
+                continue
+            
+            if not self._passes_filter(num):
+                continue
+            
+            if self.distinct:
+                self._generated_numbers.add(num)
+            return num
+        
         return None
     
-    def put(self, key: Any, value: Any) -> None:
-        if self.capacity <= 0:
-            return
+    def __iter__(self) -> Iterator[int]:
+        count = 0
+        if self.distinct:
+            self._generated_numbers.clear()
         
-        if key in self.cache:
-            self.cache[key] = value
-            self.access_order.move_to_end(key)
-        else:
-            if len(self.cache) >= self.capacity:
-                self._evict()
-            self.cache[key] = value
-            self.access_order[key] = None
-    
-    def _evict(self) -> None:
-        if not self.cache:
-            return
+        max_possible = self.max - self.min + 1
         
-        lru_key, _ = self.access_order.popitem(last=False)
-        del self.cache[lru_key]
-
-
-class LfuDictCache:
-    def __init__(self, capacity: int):
-        self.capacity = capacity
-        self.cache = {}
-        self.frequencies = defaultdict(int)
-        self.freq_lists = defaultdict(OrderedDict)
-        self.min_freq = 0
-    
-    def get(self, key: Any) -> Optional[Any]:
-        if key not in self.cache:
-            return None
-        
-        self._update_frequency(key)
-        return self.cache[key]
-    
-    def put(self, key: Any, value: Any) -> None:
-        if self.capacity <= 0:
-            return
-        
-        if key in self.cache:
-            self.cache[key] = value
-            self._update_frequency(key)
-        else:
-            if len(self.cache) >= self.capacity:
-                self._evict()
+        while True:
+            if self.limit is not None and count >= self.limit:
+                break
             
-            self.cache[key] = value
-            self.frequencies[key] = 1
-            self.freq_lists[1][key] = None
-            self.min_freq = 1
-    
-    def _update_frequency(self, key: Any) -> None:
-        old_freq = self.frequencies[key]
-        self.frequencies[key] += 1
-        new_freq = self.frequencies[key]
-        
-        del self.freq_lists[old_freq][key]
-        self.freq_lists[new_freq][key] = None
-        
-        if old_freq == self.min_freq and not self.freq_lists[old_freq]:
-            self.min_freq += 1
-    
-    def _evict(self) -> None:
-        if not self.cache:
-            return
-        
-        while not self.freq_lists[self.min_freq]:
-            self.min_freq += 1
-        
-        freq_dict = self.freq_lists[self.min_freq]
-        key_to_remove, _ = freq_dict.popitem(last=False)
-        
-        del self.cache[key_to_remove]
-        del self.frequencies[key_to_remove]
-    
-    def size(self) -> int:
-        return len(self.cache)
-    
-    def clear(self) -> None:
-        self.cache.clear()
-        self.frequencies.clear()
-        self.freq_lists.clear()
-        self.min_freq = 0
+            if self.distinct and len(self._generated_numbers) >= max_possible:
+                break
+            
+            num = self._generate_next()
+            if num is None:
+                break
+            
+            count += 1
+            yield num
