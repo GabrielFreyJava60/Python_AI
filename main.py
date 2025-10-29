@@ -12,7 +12,8 @@ class RandomNumbersStream:
         self.filter_predicate: Optional[Callable[[int], bool]] = None
         self.limit: Optional[int] = None
         self.distinct = False
-        self._generated_numbers: set[int] = set()
+        # Cache the range size to avoid recomputation
+        self._range_size: int = self.max - self.min + 1
     
     def setFilter(self, predicate: Callable[[int], bool]) -> None:
         self.filter_predicate = predicate
@@ -24,11 +25,9 @@ class RandomNumbersStream:
     
     def setDistinct(self) -> None:
         self.distinct = True
-        self._generated_numbers.clear()
     
     def resetDistinct(self) -> None:
         self.distinct = False
-        self._generated_numbers.clear()
     
     def _passes_filter(self, num: int) -> bool:
         if self.filter_predicate is None:
@@ -39,8 +38,7 @@ class RandomNumbersStream:
             return False
     
     def _generate_next(self, used_numbers: set[int]) -> Optional[int]:
-        max_possible = self.max - self.min + 1
-        max_attempts = max(10000, max_possible * 10)
+        max_attempts = max(10000, self._range_size * 10)
         
         for _ in range(max_attempts):
             num = random.randint(self.min, self.max)
@@ -58,16 +56,21 @@ class RandomNumbersStream:
         return None
     
     def __iter__(self) -> Iterator[int]:
+        # Fast path: distinct without filter can be generated in O(k)
+        if self.distinct and self.filter_predicate is None:
+            k = self._range_size if self.limit is None else min(self.limit, self._range_size)
+            for num in random.sample(range(self.min, self.max + 1), k):
+                yield num
+            return
+
         count = 0
         used_numbers = set()
-        
-        max_possible = self.max - self.min + 1
         
         while True:
             if self.limit is not None and count >= self.limit:
                 break
             
-            if self.distinct and len(used_numbers) >= max_possible:
+            if self.distinct and len(used_numbers) >= self._range_size:
                 break
             
             num = self._generate_next(used_numbers)
