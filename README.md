@@ -1,56 +1,33 @@
-# HW #28 Definition
+# HW #29 Definition
 
-## Write class RandomNumbersStream with the following methods and use cases
+## Write module (Python file 'converter.py') containing the following functions
 
-### Methods
+### def enumerator(values: Iterable[str]) -> dict[str, int]
 
-- `__init__(self, min: int = -10 ** 20, max: int = 10 ** 20)` - initialization for generation of endless random numbers in closed interval [min, max]
-- `setFilter(self, predicate: Callable[[int], bool])` - sets predicate for filtering generated random numbers
-- `setLimit(self, limit: int)` - sets limit of generated random numbers
-- `setDistinct(self)` - defines the generation of unique random numbers (by default numbers may repeat)
-- `resetDistinct(self)` - cancels the generation of unique random numbers (sets default)
-- `__iter__(self) -> Iterator[int]` - iterates generated random numbers
+takes Iterable of strings  
+returns dictionary with initial string as key and sequentianal number as value  
+hint: use dictionary comprehension expression with enumerating
 
-### Use Cases
+### def columnsMapper(columnsStr: list[str], df: DataFrame)->dict[str, dict[str, int]]
 
-#### Endless Random Numbers Streaming:
+takes list of the column names DataFrame (type from pandas; if there is 'import pandas as pd' this type may be defined like pd.DataFrame)  
+returns dictionary with name of column as key and dictionary (see description of returning type in previous function) as value  
+this function is intended for getting enumerated values for the specified columns
 
-```python
-numbers = RandomNumbersStream(min=10, max=100)
-for num in numbers:
-    print(num)  # endless loop printing random numbers in the interval [10, 100]
-```
+### def convertX(df:pd.DataFrame, mapper: dict[str, dict[str, int]])-> pd.DataFrame
 
-#### Endless Even Random Numbers Streaming:
+takes DataFrame and mapper (result of the previous function)  
+returns DataFrame with columns containing sequentianal numbers as the values  
+this function is intended for converting DataFrame containing strings as the values to a DataFrame containing the numbers as the values
 
-```python
-numbers = RandomNumbersStream(min=10, max=100)
-numbers.setFilter(lambda n: n % 2 == 0)
-for num in numbers:
-    print(num)  # endless loop printing even random numbers in the interval [10, 100]
-```
+## Write test_converter.py module with the tests
 
-#### Limited Even Random Numbers Streaming:
+### Notes
 
-```python
-numbers = RandomNumbersStream(min=10, max=100)
-numbers.setFilter(lambda n: n % 2 == 0)
-numbers.setLimit(10)
-for num in numbers:
-    print(num)  # printing 10 even random numbers in the interval [10, 100]
-```
-
-#### Sport Lotto:
-
-```python
-numbers = RandomNumbersStream(min=1, max=49)
-numbers.setDistinct()
-numbers.setLimit(10)
-for num in numbers:
-    print(num)  # printing 10 unique random numbers in the interval [1, 49]
-```
+1. Creating DataFrame example with test result: df = pd.DataFrame({"Company":['Toyota','Toyota','Hundai', 'Hundai', 'Hundai' ], "Model": ['Camry', 'Corolla', 'i10', 'Elantra', 'Kona']}); dfConverted = convertX(df, mapper={'Company': {'Toyota': 0, 'Hundai': 1}, 'Model': {'Camry': 0, 'Corolla': 1, 'i10': 2, 'Elantra':3, 'Kona':4}}); dfConverter.to_dict(orient="list") will be {"Company":[0,0,1,1,1], "Model": [0, 1, 2, 3, 4]}  
+Note: dfConverter.to_dict(orient="list") the method of converting DataFrame to a dictionary in the specified above format for testing
 
 ## Files
 
-- `main.py` - implementation of RandomNumbersStream class
-- `demo_random_stream.py` - demonstration script showing RandomNumbersStream behavior
+- `converter.py` - implementation of converter module with enumerator, columnsMapper, and convertX functions
+- `test_converter.py` - tests for converter module
