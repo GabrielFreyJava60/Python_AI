@@ -6,7 +6,7 @@ def enumerator(values: Iterable[str]) -> dict[str, int]:
     return {value: idx for idx, value in enumerate(values)}
 
 
-def columnsMapper(columnsStr: list[str], df: pd.DataFrame) -> dict[str, dict[str, int]]:
+def columnsMapper(df: pd.DataFrame, columnsStr: list[str]) -> dict[str, dict[str, int]]:
     result = {}
     for column in columnsStr:
         if column not in df.columns:

@@ -28,7 +28,7 @@ def test_columnsMapper():
         "Model": ['Camry', 'Corolla', 'i10', 'Elantra', 'Kona']
     })
     
-    result = columnsMapper(["Company", "Model"], df)
+    result = columnsMapper(df, ["Company", "Model"])
     
     assert "Company" in result, "Company should be in result"
     assert "Model" in result, "Model should be in result"
@@ -39,7 +39,7 @@ def test_columnsMapper():
     assert result["Model"] == {'Camry': 0, 'Corolla': 1, 'i10': 2, 'Elantra': 3, 'Kona': 4}, \
         f"Model mapping incorrect: {result['Model']}"
     
-    result2 = columnsMapper(["Company"], df)
+    result2 = columnsMapper(df, ["Company"])
     assert len(result2) == 1
     assert "Company" in result2
     
@@ -78,7 +78,7 @@ def test_integration():
         "Model": ['Camry', 'Corolla', 'i10', 'Elantra', 'Kona']
     })
     
-    mapper = columnsMapper(["Company", "Model"], df)
+    mapper = columnsMapper(df, ["Company", "Model"])
     
     dfConverted = convertX(df, mapper)
     result_dict = dfConverted.to_dict(orient="list")
