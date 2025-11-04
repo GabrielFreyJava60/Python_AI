@@ -6,9 +6,9 @@ def enumerator(values: Iterable[str]) -> dict[str, int]:
     return {value: idx for idx, value in enumerate(values)}
 
 
-def columnsMapper(df: pd.DataFrame, columnsStr: list[str]) -> dict[str, dict[str, int]]:
+def columnsMapper(df: pd.DataFrame, columns: list[str]) -> dict[str, dict[str, int]]:
     result = {}
-    for column in columnsStr:
+    for column in columns:
         if column not in df.columns:
             raise ValueError(f"Column '{column}' not found in DataFrame")
         unique_values = df[column].unique()
