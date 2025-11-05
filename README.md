@@ -18,13 +18,30 @@
 
 ## Files
 
-- `hw30.py` - main script implementing all tasks
+- `car_sales.ipynb` - Jupyter Notebook with interactive solution (recommended)
+- `hw30.py` - Python script implementing all tasks
 - `car_sales_data.csv` - dataset with car sales information
 - `converter.py` - module from HW29 used for encoding categorical data
-- `car_model_predictor.joblib` - saved trained model (generated after running hw30.py)
-- `car_model_mappers.joblib` - saved encoders for features and target (generated after running hw30.py)
+- `car_model_predictor.joblib` - saved trained model (generated after running)
+- `car_model_mappers.joblib` - saved encoders for features and target (generated after running)
 
 ## Usage
+
+### Option 1: Jupyter Notebook (Recommended)
+
+```bash
+jupyter notebook car_sales.ipynb
+# or
+jupyter lab car_sales.ipynb
+```
+
+The notebook provides:
+- Interactive execution of code cells
+- Step-by-step documentation
+- Visual output of DataFrames
+- Easy experimentation
+
+### Option 2: Python Script
 
 ```bash
 python3 hw30.py
