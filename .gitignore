@@ -9,3 +9,8 @@ __pycache__/
 dist/
 build/
 
+
+# Simulation artifacts
+demo_plots/
+life_frames/
+*.gif
