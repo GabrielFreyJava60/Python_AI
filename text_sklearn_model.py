@@ -13,7 +13,7 @@ class TextModel:
         ]
         
         self.sentences = sentences
-        self.vectorizer = TfidfVectorizer()
+        self.vectorizer = TfidfVectorizer(stop_words="english")
         
         if self.sentences:
             self.sentence_vectors = self.vectorizer.fit_transform(self.sentences)
