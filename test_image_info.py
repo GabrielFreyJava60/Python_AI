@@ -52,8 +52,8 @@ class TestImageInfo(unittest.TestCase):
         self.assertIsNotNone(self.image_info)
         self.assertIsNotNone(self.image_info.model)
         self.assertIsNotNone(self.image_info.results)
-        self.assertGreater(self.image_info.image_width, 0)
-        self.assertGreater(self.image_info.image_height, 0)
+        self.assertIsNotNone(self.image_info.boxes)
+        self.assertGreater(len(self.image_info.boxes), 0)
     
     def test_boxesClass(self):
         """Test boxesClass method."""
