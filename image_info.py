@@ -32,15 +32,8 @@ class ImageInfo:
         # Run inference
         self.results = self.model(str(self.image_path))
         
-        # Get the first result (single image)
-        self.result = self.results[0]
-        
-        # Get image dimensions
-        self.image_width = self.result.orig_shape[1]
-        self.image_height = self.result.orig_shape[0]
-        
-        # Store boxes for easy access
-        self.boxes = self.result.boxes
+        # Get the first result (single image) and store boxes
+        self.boxes = self.results[0].boxes
     
     def boxesClass(self, class_name: str) -> list:
         """
@@ -52,13 +45,8 @@ class ImageInfo:
         Returns:
             List of box indices matching the class
         """
-        indices = []
-        for i, box in enumerate(self.boxes):
-            cls_id = int(box.cls[0])
-            cls_name = self.model.names[cls_id]
-            if cls_name == class_name:
-                indices.append(i)
-        return indices
+        return [i for i, box in enumerate(self.boxes) 
+                if self.model.names[int(box.cls[0])] == class_name]
     
     def boxInfo(self, box_index: int) -> tuple:
         """
@@ -70,23 +58,20 @@ class ImageInfo:
         Returns:
             Tuple (xmin, ymin, xmax, ymax, confidence, class_name)
         """
-        if box_index >= len(self.boxes):
+        if not 0 <= box_index < len(self.boxes):
             raise IndexError(f"Box index {box_index} out of range")
         
         box = self.boxes[box_index]
-        
-        # Get bounding box coordinates
         xyxy = box.xyxy[0].cpu().numpy()
-        xmin, ymin, xmax, ymax = float(xyxy[0]), float(xyxy[1]), float(xyxy[2]), float(xyxy[3])
         
-        # Get confidence
-        confidence = float(box.conf[0].cpu().numpy())
-        
-        # Get class name
-        cls_id = int(box.cls[0])
-        class_name = self.model.names[cls_id]
-        
-        return (xmin, ymin, xmax, ymax, confidence, class_name)
+        return (
+            float(xyxy[0]),  # xmin
+            float(xyxy[1]),  # ymin
+            float(xyxy[2]),  # xmax
+            float(xyxy[3]),  # ymax
+            float(box.conf[0]),  # confidence
+            self.model.names[int(box.cls[0])]  # class_name
+        )
     
     def dataFrame(self) -> pd.DataFrame:
         """
@@ -95,18 +80,18 @@ class ImageInfo:
         Returns:
             DataFrame with columns: xmin, ymin, xmax, ymax, confidence, class_name
         """
-        data = []
-        for i in range(len(self.boxes)):
-            xmin, ymin, xmax, ymax, confidence, class_name = self.boxInfo(i)
-            data.append({
+        data = [
+            {
                 'xmin': xmin,
                 'ymin': ymin,
                 'xmax': xmax,
                 'ymax': ymax,
                 'confidence': confidence,
                 'class_name': class_name
-            })
-        
+            }
+            for i in range(len(self.boxes))
+            for xmin, ymin, xmax, ymax, confidence, class_name in [self.boxInfo(i)]
+        ]
         return pd.DataFrame(data)
     
     def suitcaseHandbagPerson(self, threshold: float) -> dict:
@@ -121,46 +106,33 @@ class ImageInfo:
             - key: index of suitcase/handbag box
             - value: tuple (person_box_index, normalized_distance) or None if distance > threshold
         """
-        # Get indices of suitcases, handbags, and persons
-        suitcase_indices = self.boxesClass("suitcase")
-        handbag_indices = self.boxesClass("handbag")
+        luggage_indices = self.boxesClass("suitcase") + self.boxesClass("handbag")
         person_indices = self.boxesClass("person")
-        
-        # Combine suitcase and handbag indices
-        luggage_indices = suitcase_indices + handbag_indices
         
         result = {}
         
         for luggage_idx in luggage_indices:
-            luggage_box = self.boxes[luggage_idx]
-            luggage_xywhn = luggage_box.xywhn[0].cpu().numpy()
-            luggage_x_center = luggage_xywhn[0]
-            luggage_y_center = luggage_xywhn[1]
+            # Get luggage center coordinates (normalized)
+            luggage_center = self.boxes[luggage_idx].xywhn[0].cpu().numpy()[:2]
             
             min_distance = float('inf')
             matched_person_idx = None
             
             # Find the nearest person
             for person_idx in person_indices:
-                person_box = self.boxes[person_idx]
-                person_xywhn = person_box.xywhn[0].cpu().numpy()
-                person_x_center = person_xywhn[0]
-                person_y_center = person_xywhn[1]
-                
-                # Calculate normalized distance between centers
-                dx = luggage_x_center - person_x_center
-                dy = luggage_y_center - person_y_center
-                distance = np.sqrt(dx**2 + dy**2)
+                person_center = self.boxes[person_idx].xywhn[0].cpu().numpy()[:2]
+                distance = float(np.linalg.norm(luggage_center - person_center))
                 
                 if distance < min_distance:
                     min_distance = distance
                     matched_person_idx = person_idx
             
-            # Check if distance is within threshold
-            if matched_person_idx is not None and min_distance <= threshold:
-                result[luggage_idx] = (matched_person_idx, min_distance)
-            else:
-                result[luggage_idx] = None
+            # Store result if within threshold
+            result[luggage_idx] = (
+                (matched_person_idx, min_distance) 
+                if matched_person_idx is not None and min_distance <= threshold 
+                else None
+            )
         
         return result
 
