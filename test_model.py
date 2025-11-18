@@ -2,30 +2,42 @@ import requests
 from PIL import Image
 from io import BytesIO
 from ultralytics import YOLO
+from image_info import ImageInfo
 
 
 def test_model_with_url(model_path, image_url):
     print("📥 Downloading image...")
     response = requests.get(image_url)
     img = Image.open(BytesIO(response.content))
+    img.save("temp_test.jpg")
     
     print("🔧 Loading model...")
     model = YOLO(model_path)
     
     print("🔮 Running prediction...")
-    results = model.predict(img, save=True, conf=0.5)
+    results = model.predict("temp_test.jpg", save=True, conf=0.5)
     
     print("\n✅ Complete!")
     
     result_img = results[0].plot()
     result_pil = Image.fromarray(result_img)
     
-    print("\n📊 Detections:")
+    print("\n📊 Detections via YOLO:")
     for box in results[0].boxes:
         class_id = int(box.cls[0])
         confidence = float(box.conf[0])
         class_name = model.names[class_id]
         print(f"  • {class_name}: {confidence:.2%}")
+    
+    print("\n🔍 Validation via ImageInfo (HW#33):")
+    img_info = ImageInfo("temp_test.jpg")
+    df = img_info.dataFrame()
+    print(f"  Total objects detected: {len(df)}")
+    
+    circles = img_info.boxesClass("circle")
+    squares = img_info.boxesClass("square")
+    print(f"  🔵 Circles: {len(circles)}")
+    print(f"  🟦 Squares: {len(squares)}")
     
     return result_pil
 
