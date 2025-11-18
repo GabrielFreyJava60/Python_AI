@@ -1,4 +1,8 @@
-def create_data_yaml(path="/content/datasets"):
+import os
+
+def create_data_yaml(path="datasets"):
+    
+    os.makedirs(path, exist_ok=True)
     
     yaml_content = f"""path: {path}
 train: train/images
@@ -21,5 +25,5 @@ names: ['circle', 'square']
 
 
 if __name__ == "__main__":
-    create_data_yaml("/content/datasets")
+    create_data_yaml("datasets")
 
