@@ -1,69 +1,86 @@
-# HW#33 - ImageInfo Class
+# HW#34 Definition
 
-## Описание
+## Write code creating
 
-Реализация класса `ImageInfo` для анализа изображений с использованием модели YOLO segmentation.
+- 30 circle images with different random x, y, radius
+- 30 square images with different random x, y, width
+- 30 labels matching the 30 above circle images
+- 30 labels matching the 30 above square images
+- 3 circles for validation (val)
+- 3 squares for validation
+- 3 labels matching the 3 above circle images for validation
+- 3 labels matching the 3 above square images for validation
 
-## Требования
+## Update item "names" in data.yaml file
 
-- Python 3.8+
-- ultralytics
-- pandas
-- Pillow
-- numpy
+Create configuration file for YOLO training with proper class names.
 
-## Установка
+## Train and create model (best.pt)
+
+Train YOLOv8 model and generate the best performing model.
+
+## Test created model on some image downloaded from Internet containing circles and squares
+
+- Color doesn't matter
+- Find out image containing combination of circles and squares
+
+## Note
+
+Try to get rid of copy/pastes in the code (DRY principle).
+
+---
+
+## Solution Structure
+
+```
+python-ai-assignment/
+├── generate_dataset.py      # Dataset generator (both simple and advanced)
+├── train_yolo.py            # Training script
+├── test_model.py            # Testing script (local)
+├── test_colab.py            # Testing script (Google Colab)
+├── create_yaml.py           # YAML generator
+├── data.yaml                # YOLO configuration
+├── image_info.py            # ImageInfo class (HW#33)
+├── test_image_info.py       # Tests for ImageInfo
+├── datasets/
+│   ├── data.yaml
+│   ├── train/
+│   │   ├── images/         # 60 training images
+│   │   └── labels/         # 60 training labels
+│   └── val/
+│       ├── images/         # 6 validation images
+│       └── labels/         # 6 validation labels
+└── runs/                    # Training results
+    └── detect/
+        └── circle_square_detector/
+            └── weights/
+                └── best.pt  # Trained model
+```
+
+## Usage
+
+### 1. Generate Dataset
+```bash
+python3 generate_dataset.py
+```
+
+### 2. Train Model
+```bash
+python3 train_yolo.py
+```
+
+### 3. Test Model
+```bash
+python3 test_model.py
+```
+
+## Requirements
 
 ```bash
-pip install -r requirements.txt
+pip install ultralytics pandas numpy Pillow
 ```
 
-## Использование
+## Repository
 
-```python
-from image_info import ImageInfo
-
-# Инициализация с путем к изображению
-image_info = ImageInfo("path/to/image.jpg")
-
-# Получить индексы боксов определенного класса
-person_indices = image_info.boxesClass("person")
-
-# Получить информацию о конкретном боксе
-xmin, ymin, xmax, ymax, confidence, class_name = image_info.boxInfo(0)
-
-# Получить DataFrame со всеми детекциями
-df = image_info.dataFrame()
-
-# Найти соответствия между сумками/чемоданами и людьми
-matches = image_info.suitcaseHandbagPerson(threshold=0.5)
-```
-
-## Методы класса
-
-### `__init__(image_path: str)`
-Конструктор, принимающий путь к изображению. Использует модель "yolov8m-seg.pt".
-
-### `boxesClass(class_name: str) -> list`
-Возвращает индексы боксов, соответствующих заданному классу.
-
-### `boxInfo(box_index: int) -> tuple`
-Возвращает кортеж (xmin, ymin, xmax, ymax, confidence, class_name) для указанного бокса.
-
-### `dataFrame() -> pd.DataFrame`
-Возвращает pandas DataFrame со всеми детекциями.
-
-### `suitcaseHandbagPerson(threshold: float) -> dict`
-Возвращает словарь, где ключ - индекс бокса сумки/чемодана, значение - кортеж (индекс бокса человека, нормализованное расстояние) или None, если расстояние превышает порог.
-
-## Тестирование
-
-```bash
-python test_image_info.py
-```
-
-## Примечания
-
-- Модель "yolov8m-seg.pt" будет автоматически загружена при первом использовании
-- Для тестирования требуется изображение с объектами (например, street.jpg)
-
+- **Main branch:** HW#33 - ImageInfo class
+- **hw34 branch:** HW#34 - YOLO training dataset
