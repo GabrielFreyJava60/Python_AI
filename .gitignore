@@ -13,10 +13,8 @@ ENV/
 *.pt
 yolov8*.pt
 
-# Test images (optional - uncomment if you want to ignore test images)
-# *.jpg
-# *.jpeg
-# *.png
+# Generated datasets
+datasets/
 
 # IDE
 .vscode/
