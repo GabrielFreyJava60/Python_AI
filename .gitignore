@@ -30,3 +30,9 @@ Thumbs.db
 # Jupyter
 .ipynb_checkpoints/
 
+# Visualization
+dataset_visualization.ipynb
+visualize.py
+start_jupyter.sh
+dataset_visualization.png
+
